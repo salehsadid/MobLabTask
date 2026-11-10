@@ -13,22 +13,12 @@ struct TaskListView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Header
-            HStack {
-                Text("My Tasks").font(.title).bold()
-                Spacer()
-                Text(auth.email).foregroundColor(.secondary)
-                Button("Logout") { auth.signOut() }
-            }
-
-            // CREATE form
-            GroupBox("New Task") {
-                VStack(alignment: .leading) {
+        NavigationView {
+            List {
+                // CREATE form
+                Section(header: Text("New Task")) {
                     TextField("Title", text: $newTitle)
-                        .textFieldStyle(.roundedBorder)
                     TextField("Description", text: $newDescription)
-                        .textFieldStyle(.roundedBorder)
                     Button("Add Task") {
                         vm.addTask(title: newTitle, description: newDescription)
                         newTitle = ""
@@ -36,48 +26,66 @@ struct TaskListView: View {
                     }
                     .disabled(newTitle.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
-                .padding(4)
-            }
 
-            if !vm.errorMessage.isEmpty {
-                Text(vm.errorMessage).foregroundColor(.red).font(.caption)
-            }
+                if !vm.errorMessage.isEmpty {
+                    Text(vm.errorMessage).foregroundColor(.red).font(.caption)
+                }
 
-            // READ list
-            List {
-                ForEach(vm.tasks) { task in
-                    HStack(alignment: .top) {
-                        Button {
-                            vm.toggleDone(task)
-                        } label: {
-                            Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                        }
-                        .buttonStyle(.plain)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(task.title)
-                                .font(.headline)
-                                .strikethrough(task.isDone)
-                            if !task.description.isEmpty {
-                                Text(task.description)
-                                    .foregroundColor(.secondary)
+                // READ list
+                Section(header: Text("My Tasks (\(auth.email))")) {
+                    ForEach(vm.tasks) { task in
+                        HStack(alignment: .top) {
+                            // Toggle done (UPDATE)
+                            Button {
+                                vm.toggleDone(task)
+                            } label: {
+                                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                                    .font(.title3)
                             }
+                            .buttonStyle(.borderless)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(task.title)
+                                    .font(.headline)
+                                    .strikethrough(task.isDone)
+                                if !task.description.isEmpty {
+                                    Text(task.description)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            Spacer()
+
+                            // Edit (UPDATE)
+                            Button {
+                                editingTask = task
+                            } label: {
+                                Image(systemName: "pencil")
+                            }
+                            .buttonStyle(.borderless)
+
+                            // DELETE
+                            Button {
+                                vm.deleteTask(task)
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.borderless)
                         }
-
-                        Spacer()
-
-                        Button("Edit") { editingTask = task }     // UPDATE
-                        Button("Delete") { vm.deleteTask(task) }  // DELETE
-                            .foregroundColor(.red)
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
                 }
             }
-        }
-        .padding()
-        .sheet(item: $editingTask) { task in
-            EditTaskView(task: task) { updated in
-                vm.updateTask(updated)
+            .navigationTitle("Todo List")
+            .toolbar {
+                Button("Logout") { auth.signOut() }
+            }
+            .sheet(item: $editingTask) { task in
+                EditTaskView(task: task) { updated in
+                    vm.updateTask(updated)
+                }
             }
         }
     }
@@ -90,24 +98,24 @@ struct EditTaskView: View {
     var onSave: (TodoItem) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Edit Task").font(.title2).bold()
-            TextField("Title", text: $task.title)
-                .textFieldStyle(.roundedBorder)
-            TextField("Description", text: $task.description)
-                .textFieldStyle(.roundedBorder)
-            Toggle("Completed", isOn: $task.isDone)
-            HStack {
-                Spacer()
-                Button("Cancel") { dismiss() }
-                Button("Save") {
-                    onSave(task)
-                    dismiss()
+        NavigationView {
+            Form {
+                TextField("Title", text: $task.title)
+                TextField("Description", text: $task.description)
+                Toggle("Completed", isOn: $task.isDone)
+            }
+            .navigationTitle("Edit Task")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
                 }
-                .keyboardShortcut(.defaultAction)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onSave(task)
+                        dismiss()
+                    }
+                }
             }
         }
-        .padding()
-        .frame(width: 380)
     }
 }

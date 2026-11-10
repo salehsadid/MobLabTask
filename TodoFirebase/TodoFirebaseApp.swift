@@ -14,7 +14,6 @@ struct TodoFirebaseApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(auth)
-                .frame(minWidth: 500, minHeight: 450)
         }
     }
 }

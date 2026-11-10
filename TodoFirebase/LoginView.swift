@@ -12,28 +12,32 @@ struct LoginView: View {
 
             TextField("Email", text: $email)
                 .textFieldStyle(.roundedBorder)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
 
             SecureField("Password (min 6 characters)", text: $password)
                 .textFieldStyle(.roundedBorder)
 
-            HStack {
+            HStack(spacing: 20) {
                 Button("Login") {
                     auth.signIn(email: email, password: password)
                 }
-                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
 
                 Button("Sign Up") {
                     auth.signUp(email: email, password: password)
                 }
+                .buttonStyle(.bordered)
             }
 
             if !auth.errorMessage.isEmpty {
                 Text(auth.errorMessage)
                     .foregroundColor(.red)
                     .font(.caption)
+                    .multilineTextAlignment(.center)
             }
         }
-        .padding(40)
-        .frame(maxWidth: 400)
+        .padding(30)
     }
 }
