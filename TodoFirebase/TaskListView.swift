@@ -8,8 +8,8 @@ struct TaskListView: View {
     @State private var newDescription = ""
     @State private var editingTask: TodoItem?
 
-    init(uid: String) {
-        _vm = StateObject(wrappedValue: TaskViewModel(uid: uid))
+    init(authModel: AuthViewModel, uid: String) {
+        _vm = StateObject(wrappedValue: TaskViewModel(auth: authModel, uid: uid))
     }
 
     var body: some View {
@@ -29,6 +29,10 @@ struct TaskListView: View {
 
                 if !vm.errorMessage.isEmpty {
                     Text(vm.errorMessage).foregroundColor(.red).font(.caption)
+                }
+
+                if vm.isLoading {
+                    ProgressView()
                 }
 
                 // READ list
@@ -79,6 +83,8 @@ struct TaskListView: View {
                 }
             }
             .navigationTitle("Todo List")
+            .task { await vm.loadTasks() }          // load tasks when screen opens
+            .refreshable { await vm.loadTasks() }   // pull down to reload
             .toolbar {
                 Button("Logout") { auth.signOut() }
             }

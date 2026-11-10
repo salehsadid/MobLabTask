@@ -30,6 +30,11 @@ struct LoginView: View {
                 }
                 .buttonStyle(.bordered)
             }
+            .disabled(auth.isLoading)
+
+            if auth.isLoading {
+                ProgressView()
+            }
 
             if !auth.errorMessage.isEmpty {
                 Text(auth.errorMessage)

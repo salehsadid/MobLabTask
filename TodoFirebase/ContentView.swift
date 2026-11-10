@@ -6,7 +6,8 @@ struct ContentView: View {
 
     var body: some View {
         if let uid = auth.userId {
-            TaskListView(uid: uid)
+            TaskListView(authModel: auth, uid: uid)
+                .id(uid) // fresh task list for each user
         } else {
             LoginView()
         }
